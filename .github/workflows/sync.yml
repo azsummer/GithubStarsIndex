@@ -53,6 +53,19 @@ jobs:
       - name: 安装依赖
         run: pip install -r requirements.txt
 
+      # ── 4.1 从 gh-pages 恢复上次数据（用于增量处理） ─────────────
+      - name: 从 gh-pages 恢复 stars.json（如存在）
+        run: |
+          set -e
+          mkdir -p data
+          git fetch origin gh-pages --depth=1 || true
+          if git show origin/gh-pages:data/stars.json > data/stars.json 2>/dev/null; then
+            echo "✅ 已从 gh-pages 恢复 data/stars.json"
+          else
+            echo "ℹ️ gh-pages 上暂无 data/stars.json，将从空数据开始"
+            rm -f data/stars.json
+          fi
+
       # ── 4. 可选：强制重置数据集 ──────────────────────
       - name: 重置数据集（仅在 force_rebuild=true 时执行）
         if: github.event.inputs.force_rebuild == 'true'
@@ -81,29 +94,14 @@ jobs:
           PAGES_SYNC_ENABLED: ${{ vars.PAGES_SYNC_ENABLED }}
         run: python scripts/sync_stars.py
 
-      # ── 6. 提交变更到本仓库 ───────────────────────────────
-      - name: 提交并推送变更
+      # ── 6. 准备 Pages 发布内容（包含 stars.json） ─────────────
+      - name: 准备 gh-pages 发布目录
         run: |
           set -e
-      
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      
-          git add data/stars.json
-      
-          if git diff --staged --quiet; then
-            echo "✅ 无新内容，跳过提交"
-            exit 0
-          fi
-      
-          git commit -m "🤖 自动更新 GitHub Stars 摘要 [$(date -u '+%Y-%m-%d %H:%M UTC')]"
-      
-          echo "🔄 同步远程最新代码..."
-          git fetch origin main
-          git rebase origin/main
-      
-          echo "🚀 推送更新..."
-          git push origin main
+          test -f data/stars.json || { echo "❌ 未找到 data/stars.json"; exit 1; }
+          mkdir -p dist/data
+          cp data/stars.json dist/data/stars.json
+          echo "✅ 已写入 dist/data/stars.json（仅发布到 gh-pages，不提交 main）"
 
       # ── 7. 部署到 GitHub Pages ─────────────────────────────
       - name: 部署到 GitHub Pages
