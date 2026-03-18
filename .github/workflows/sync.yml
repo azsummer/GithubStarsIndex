@@ -1,6 +1,6 @@
 name: 🌟 GitHub Stars Index同步
 
-on:
+于:
   # ── 定时触发 ──────────────────────────────────────────────
   # 修改下方 cron 表达式以自定义执行频率（UTC 时间）
   # 示例:
@@ -9,7 +9,7 @@ on:
   #   "0 2 1 * *"   → 每月 1 日 UTC 02:00
   # cron 在线生成器: https://crontab.guru
   schedule:
-    - cron: '18 18 * * *' # ← 在此修改你的定时频率
+    - cron: "0 2 * * 1" # ← 在此修改你的定时频率
 
   # ── 手动触发 ──────────────────────────────────────────────
   workflow_dispatch:
@@ -17,16 +17,16 @@ on:
       force_rebuild:
         description: '强制重新生成所有摘要（重建 JSON 数据集）'
         required: false
-        default: 'false'
-        type: choice
+        默认: 'false'
+        输入: choice
         options:
           - 'false'
           - 'true'
       test_limit:
         description: '测试模式：限制处理的项目数量（如填 5 则只处理 5 个新项目，留空不限制）'
         required: false
-        default: ''
-        type: string
+        默认: ''
+        输入: string
 
 permissions:
   contents: write # 允许 Action 提交文件到本仓库
